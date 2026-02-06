@@ -7,6 +7,7 @@ import PreviewModal from './components/PreviewModal';
 import { PageBlock, BlockType, SavedPage } from './types';
 import { INITIAL_BLOCKS } from './constants';
 import { PreviewIcon, PlusIcon } from './components/Icons';
+import { exportBlocksToHtml } from './services/htmlExportService';
 
 const App: React.FC = () => {
   const [blocks, setBlocks] = useState<PageBlock[]>(INITIAL_BLOCKS);
@@ -26,9 +27,23 @@ const App: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
+  const saveToLocalStorage = () => {
     localStorage.setItem('lumina_current_page', JSON.stringify(blocks));
-  }, [blocks]);
+    alert('Project saved to browser storage!');
+  };
+
+  const handleExportHtml = () => {
+    const html = exportBlocksToHtml(blocks);
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lumina-template-${Date.now()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const findBlockById = (currentBlocks: PageBlock[], id: string): PageBlock | null => {
     for (const block of currentBlocks) {
@@ -125,7 +140,6 @@ const App: React.FC = () => {
     let newBlocksList = [...blocks];
 
     if (sourceId) {
-      // It's a move
       const sourceBlock = findBlockById(blocks, sourceId);
       if (!sourceBlock || isDescendant(sourceBlock, targetId)) return;
 
@@ -143,7 +157,6 @@ const App: React.FC = () => {
       };
       newBlocksList = removeSource(blocks);
     } else if (sourceType) {
-      // It's a new add from sidebar
       blockToInsert = createNewBlock(sourceType);
     }
 
@@ -153,10 +166,8 @@ const App: React.FC = () => {
       return list.reduce((acc: PageBlock[], block) => {
         if (block.id === targetId) {
           if (block.type === 'container') {
-            // Drop inside container
             return [...acc, { ...block, children: [blockToInsert!, ...(block.children || [])] }];
           }
-          // Drop after other block types
           return [...acc, block, blockToInsert!];
         }
         if (block.children) {
@@ -242,7 +253,8 @@ const App: React.FC = () => {
     <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar 
         onAddBlock={handleAddBlock} 
-        onSave={() => alert('Template saved to browser storage!')}
+        onSave={saveToLocalStorage}
+        onExport={handleExportHtml}
         onNew={() => { if (confirm('Clear canvas?')) { setBlocks([]); setSelectedBlockId(null); } }}
       />
       
@@ -265,7 +277,6 @@ const App: React.FC = () => {
             onClick={() => setSelectedBlockId(null)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
-              // Handle drop directly on the canvas background if empty
               if (blocks.length === 0) {
                 const draggedType = e.dataTransfer.getData('blockType') as BlockType;
                 if (draggedType) {

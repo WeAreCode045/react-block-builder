@@ -1,15 +1,16 @@
 
 import React from 'react';
 import { BlockType } from '../types';
-import { PlusIcon, LayersIcon, SaveIcon } from './Icons';
+import { PlusIcon, LayersIcon, SaveIcon, MagicIcon } from './Icons';
 
 interface SidebarProps {
   onAddBlock: (type: BlockType) => void;
   onSave: () => void;
+  onExport: () => void;
   onNew: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onAddBlock, onSave, onNew }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onAddBlock, onSave, onExport, onNew }) => {
   const blockOptions: { type: BlockType; label: string; icon: string }[] = [
     { type: 'title', label: 'Title Block', icon: 'H1' },
     { type: 'text', label: 'Text Block', icon: 'T' },
@@ -20,7 +21,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onAddBlock, onSave, onNew }) => {
 
   const handleDragStart = (e: React.DragEvent, type: BlockType) => {
     e.dataTransfer.setData('blockType', type);
-    // Visual feedback for dragging
     e.dataTransfer.effectAllowed = 'copy';
   };
 
@@ -54,13 +54,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onAddBlock, onSave, onNew }) => {
         </div>
 
         <div>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Actions</h2>
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Project</h2>
           <div className="space-y-2">
             <button
               onClick={onSave}
-              className="w-full flex items-center gap-2 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+              className="w-full flex items-center gap-2 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm"
             >
-              <SaveIcon /> Save Template
+              <SaveIcon /> Save to Browser
+            </button>
+            <button
+              onClick={onExport}
+              className="w-full flex items-center gap-2 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-100 transition-colors text-sm font-medium"
+            >
+              <MagicIcon /> Export as HTML
             </button>
             <button
               onClick={onNew}
